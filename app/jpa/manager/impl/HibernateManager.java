@@ -30,6 +30,8 @@ import javax.persistence.EntityManagerFactory;
 import javax.persistence.Persistence;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.Map;
+import java.util.HashMap;
 
 @Singleton
 public class HibernateManager implements JPAManager {
@@ -38,7 +40,21 @@ public class HibernateManager implements JPAManager {
     private final EntityManagerFactory entityManagerFactory;
 
     public HibernateManager() {
-        entityManagerFactory = Persistence.createEntityManagerFactory(PERSISTENCE_UNIT_NAME);
+        Map<String, String> env = System.getenv();
+        Map<String, Object> configOverrides = new HashMap<String, Object>();
+        for (String envName : env.keySet()) {
+            if (envName.contains("DATABASE_HOST")) {
+                configOverrides.put("javax.persistence.jdbc.url", env.get(envName));    
+            }
+            if (envName.contains("DB_USER")) {
+                configOverrides.put("javax.persistence.jdbc.user", env.get(envName));    
+            }
+            if (envName.contains("DB_PASSWORD")) {
+                configOverrides.put("javax.persistence.jdbc.password", env.get(envName));    
+            }
+            // You can put more code in here to populate configOverrides...
+        }
+        entityManagerFactory = Persistence.createEntityManagerFactory(PERSISTENCE_UNIT_NAME, configOverrides);
     }
 
     @Override
